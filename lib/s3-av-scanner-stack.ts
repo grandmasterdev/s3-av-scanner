@@ -1,15 +1,24 @@
-import * as cdk from '@aws-cdk/core';
-// import * as sqs from '@aws-cdk/aws-sqs';
+import * as cdk from "aws-cdk-lib";
+import { Construct } from "constructs";
+import { CleanBucketResources } from "./clean-bucket-resources";
+import { EncryptionResources } from "./encryption-resources";
 
 export class S3AvScannerStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+  private readonly accountId: string = cdk.Stack.of(this).account;
+
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // The code that defines your stack goes here
+    console.log("accountId: ", this.accountId);
+    console.log("region: ", cdk.Stack.of(this).region);
 
-    // example resource
-    // const queue = new sqs.Queue(this, 'S3AvScannerQueue', {
-    //   visibilityTimeout: cdk.Duration.seconds(300)
-    // });
+    const encyptionResources = new EncryptionResources(this, `${id}-er`, {
+      accountId: this.accountId
+    })
+
+    new CleanBucketResources(this, `${id}-cbr`, {
+      accountId: this.accountId,
+      kmsKey: encyptionResources.kmsKey
+    });
   }
 }
