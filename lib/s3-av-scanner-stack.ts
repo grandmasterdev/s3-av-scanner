@@ -2,6 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { CleanBucketResources } from "./clean-bucket-resources";
 import { EncryptionResources } from "./encryption-resources";
+import { AvScannerResources } from "./av-scanner-resources";
 
 export class S3AvScannerStack extends cdk.Stack {
   private readonly accountId: string = cdk.Stack.of(this).account;
@@ -13,12 +14,16 @@ export class S3AvScannerStack extends cdk.Stack {
     console.log("region: ", cdk.Stack.of(this).region);
 
     const encyptionResources = new EncryptionResources(this, `${id}-er`, {
-      accountId: this.accountId
-    })
-
-    new CleanBucketResources(this, `${id}-cbr`, {
       accountId: this.accountId,
-      kmsKey: encyptionResources.kmsKey
+    });
+
+    const cleanBucketResources = new CleanBucketResources(this, `${id}-cbr`, {
+      accountId: this.accountId,
+      kmsKey: encyptionResources.kmsKey,
+    });
+
+    new AvScannerResources(this, `${id}-asr`, {
+      bucket: cleanBucketResources.bucket,
     });
   }
 }

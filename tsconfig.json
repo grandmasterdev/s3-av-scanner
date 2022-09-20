@@ -21,7 +21,9 @@
     "strictPropertyInitialization": false,
     "typeRoots": [
       "./node_modules/@types"
-    ]
+    ],
+    "outDir": "dist",
+    "esModuleInterop": true
   },
   "exclude": [
     "node_modules",

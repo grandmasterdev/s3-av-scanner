@@ -5,16 +5,22 @@
     "s3-av-scanner": "bin/s3-av-scanner.js"
   },
   "scripts": {
+    "start": "node ./dist/index.js",
+    "build-api": "esbuild ./src/index.ts --platform=node --bundle --outfile=dist/index.js",
     "build": "tsc",
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk"
   },
   "devDependencies": {
+    "@types/clamscan": "^2.0.2",
+    "@types/express": "^4.17.14",
     "@types/jest": "^27.5.2",
+    "@types/multer": "^1.4.7",
     "@types/node": "10.17.27",
     "@types/prettier": "2.6.0",
     "aws-cdk": "2.41.0",
+    "esbuild": "^0.15.8",
     "jest": "^27.5.1",
     "ts-jest": "^27.1.4",
     "ts-node": "^10.9.1",
@@ -22,8 +28,12 @@
   },
   "dependencies": {
     "aws-cdk-lib": "2.41.0",
+    "binary": "^0.3.0",
     "cdk-serverless-clamscan": "^2.4.22",
+    "clamscan": "^2.1.2",
     "constructs": "^10.0.0",
+    "express": "^4.18.1",
+    "multer": "^1.4.5-lts.1",
     "source-map-support": "^0.5.21"
   }
 }

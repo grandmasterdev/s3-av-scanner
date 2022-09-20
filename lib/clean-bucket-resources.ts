@@ -18,6 +18,8 @@ export class CleanBucketResources extends Construct {
 
   private readonly queueName: string = "process-queue";
 
+  public bucket: s3.Bucket;
+
   constructor(scope: Construct, id: string, props: BucketResourcesProps) {
     super(scope, id);
 
@@ -28,7 +30,7 @@ export class CleanBucketResources extends Construct {
     /**
      * S3 bucket resource and policy
      */
-    const bucket = new s3.Bucket(this, `${id}-clean-bucket`, {
+    this.bucket = new s3.Bucket(this, `${id}-clean-bucket`, {
       bucketName: this.bucketName,
       encryption: s3.BucketEncryption.S3_MANAGED,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
