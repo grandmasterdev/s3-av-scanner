@@ -13,23 +13,13 @@ const s3 = new S3Client({});
 const sqs = new SQSClient({});
 
 export const handler = async (event: SQSEvent, context: Context) => {
-  console.log("event", JSON.stringify(event));
-
-  const { CLAMAV_ELB_HOST, SCANNED_BUCKET_NAME, INFECTED_QUEUE_URL } = process.env;
+  const { CLAMAV_ELB_HOST, SCANNED_BUCKET_NAME, INFECTED_QUEUE_URL } =
+    process.env;
   const { body } = event.Records[0];
-
-  console.log("body", body);
 
   const bodyObj = JSON.parse(body);
 
-  console.log("bodyObj", bodyObj);
-
   const { bucket, object } = bodyObj.detail;
-
-  console.log("bucket", bucket);
-  console.log("object", object);
-  console.log("name", bucket.name);
-  console.log("key", object.key);
 
   const getObjResponse = await s3.send(
     new GetObjectCommand({
@@ -67,8 +57,6 @@ export const handler = async (event: SQSEvent, context: Context) => {
     }
   );
 
-  console.log("clamAvResponse", clamAvResponse.body);
-
   const clamAvResponseObj = clamAvResponse.body as ClamAvResponse;
 
   if (clamAvResponseObj && clamAvResponseObj.scanResult) {
@@ -91,21 +79,29 @@ export const handler = async (event: SQSEvent, context: Context) => {
       /**
        * Remove the file from incoming bucket
        */
-      if(uploadOutput && uploadOutput.$metadata) {
-        await s3.send(new DeleteObjectCommand({
-          Bucket: bucket.name,
-          Key: object.key
-        }))
+      if (uploadOutput && uploadOutput.$metadata) {
+        await s3.send(
+          new DeleteObjectCommand({
+            Bucket: bucket.name,
+            Key: object.key,
+          })
+        );
       }
     } else {
-      await sqs.send(new SendMessageCommand({
-        QueueUrl: INFECTED_QUEUE_URL,
-        MessageBody: bodyObj
-      }))
+      /**
+       * Send infected file info to queue
+       */
+      await sqs.send(
+        new SendMessageCommand({
+          QueueUrl: INFECTED_QUEUE_URL,
+          MessageBody: JSON.stringify({
+            s3Data: JSON.parse(bodyObj),
+            viruses,
+          }),
+        })
+      );
     }
   }
-
-  console.log("end!");
 };
 
 async function streamToString(stream: Readable): Promise<string> {

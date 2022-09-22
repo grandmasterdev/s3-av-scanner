@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node ./dist/scanner/index.js",
     "build-api": "esbuild ./src/scanner/index.ts --platform=node --bundle --outfile=dist/scanner/index.js",
-    "build-worker": "esbuild ./src/lambda/index.ts --external:aws-sdk --platform=node --bundle --outfile=dist/lambda/index.js",
+    "build-agent": "esbuild ./src/lambda/index.ts --external:aws-sdk --platform=node --bundle --outfile=dist/lambda/index.js",
     "build": "npm run build-api & npm run build-worker",
     "watch": "tsc -w",
     "test": "jest",

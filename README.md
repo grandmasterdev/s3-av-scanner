@@ -1,14 +1,61 @@
-# Welcome to your CDK TypeScript project
+# S3 Antivirus Scanner
 
-This is a blank project for CDK development with TypeScript.
+This project creates antivirus scanner for S3 bucket object. 
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+## The Design
 
-## Useful commands
+![conceptual-diagram](documentation/assets/2-bucket-av-scanner.png)
 
-* `npm run build`   compile typescript to js
-* `npm run watch`   watch for changes and compile
-* `npm run test`    perform the jest unit tests
-* `cdk deploy`      deploy this stack to your default AWS account/region
-* `cdk diff`        compare deployed stack with current state
-* `cdk synth`       emits the synthesized CloudFormation template
+## Antivirus / Scanner
+
+The project uses an open source antivirus called [ClamAV](https://www.clamav.net/) from Cisco. The antivirus is place in the scanner agent container which can be called or triggered via API. 
+
+The docker image of the scanner agent can be found from the following repo...
+
+[Scanner Agent Docker Image](https://hub.docker.com/repository/docker/gamemasterdev/clamav)
+
+```shell
+
+docker pull gamemasterdev/clamav
+
+```
+
+## Getting Started
+
+Install all dependencies
+
+```bash
+
+npm install
+
+```
+
+## Building The Project
+
+The project consist of 2 service components...
+1. Lambda Function
+2. Scanner Agent API
+
+To build them all at once, simply run the following...
+
+```bash
+
+npm run build
+
+```
+
+To build only the `Lambda Function`, run the following...
+
+```bash
+
+npm run build-api
+
+```
+
+To build only the `Scanner Agent API`, run the following...
+
+```bash
+
+npm run build-agent
+
+```
