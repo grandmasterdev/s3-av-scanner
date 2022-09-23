@@ -10,8 +10,6 @@ export interface BucketResourcesProps extends BaseResourceProps {
   kmsKey?: IKey;
 }
 
-export interface EncryptionResourcesProps {}
-
 export interface AvScannerResourcesProps {
   queue: Queue,
   bucket: Bucket,

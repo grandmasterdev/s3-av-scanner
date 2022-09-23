@@ -59,3 +59,15 @@ To build only the `Scanner Agent API`, run the following...
 npm run build-agent
 
 ```
+
+## Building the Docker Image
+
+The scanner agent and its API are loaded into container where the image comes from docker. 
+
+You can build the image by running the following...
+
+```bash
+
+docker build -t <image name>:<version> .
+
+```

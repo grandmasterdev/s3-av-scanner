@@ -23,6 +23,8 @@ COPY ./dist/scanner .
 
 STOPSIGNAL SIGQUIT
 
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 CMD curl --fail http://localhost || exit 1
+
 CMD whoami && pwd && . /init & clamd restart && node index.js
 
 EXPOSE 3310 7357 80 8080 3000
