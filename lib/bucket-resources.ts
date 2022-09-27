@@ -5,7 +5,7 @@ import {
   aws_events as events,
   aws_events_targets as event_targets,
   aws_logs as logs,
-  Duration
+  Duration,
 } from "aws-cdk-lib";
 import { BucketResourcesProps } from "./types";
 
@@ -34,17 +34,23 @@ export class BucketResources extends Construct {
       bucketName: this.bucketName,
       encryption: s3.BucketEncryption.S3_MANAGED,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      eventBridgeEnabled: true
+      eventBridgeEnabled: true,
     });
 
     /**
      * S3 bucket resource and policy
      */
-     this.scannedBucket = new s3.Bucket(this, `${id}-scanned-bucket`, {
+    this.scannedBucket = new s3.Bucket(this, `${id}-scanned-bucket`, {
       bucketName: this.scannedBucketName,
       encryption: s3.BucketEncryption.S3_MANAGED,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
-      eventBridgeEnabled: false
+      eventBridgeEnabled: false,
+      lifecycleRules: [
+        {
+          enabled: true,
+          expiration: Duration.days(7),
+        },
+      ],
     });
 
     /**
@@ -60,32 +66,28 @@ export class BucketResources extends Construct {
      */
     const cleanBucketEventLog = new logs.LogGroup(this, `${id}-event-log`, {
       logGroupName: `/aws/events/${this.bucketName}`,
-      retention: logs.RetentionDays.ONE_DAY
-    })
+      retention: logs.RetentionDays.ONE_DAY,
+    });
 
     /**
      * S3 Bucket event resources
      */
-    new events.Rule(
-      this,
-      `${id}-clean-bucket-event-rule`,
-      {
-        ruleName: `${this.bucketName}-event-rule`,
-        enabled: true,
-        eventPattern: {
-          source: ["aws.s3"],
-          detailType: ["Object Created"],
-          detail: {
-            bucket: {
-              name: [this.bucketName],
-            },
-          }
+    new events.Rule(this, `${id}-clean-bucket-event-rule`, {
+      ruleName: `${this.bucketName}-event-rule`,
+      enabled: true,
+      eventPattern: {
+        source: ["aws.s3"],
+        detailType: ["Object Created"],
+        detail: {
+          bucket: {
+            name: [this.bucketName],
+          },
         },
-        targets: [
-          new event_targets.SqsQueue(this.queue),
-          new event_targets.CloudWatchLogGroup(cleanBucketEventLog)
-        ]
-      }
-    );
+      },
+      targets: [
+        new event_targets.SqsQueue(this.queue),
+        new event_targets.CloudWatchLogGroup(cleanBucketEventLog),
+      ],
+    });
   }
 }
