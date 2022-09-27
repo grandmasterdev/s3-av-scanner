@@ -44,11 +44,10 @@ app.post("/scan", async (req, res) => {
     body.s3Object.file.mime &&
     body.s3Object.file.name
   ) {
-    const {name, mime, data} = body.s3Object.file;
+    const {name, data} = body.s3Object.file;
 
     const buff = Buffer.from(data, "base64").toString("base64");
 
-    // const fileExt = mime.replace("@file/", "");
     const filename = `${name}`;
 
     writeFileSync(filename, buff, { encoding: "base64" });

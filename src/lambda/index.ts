@@ -28,7 +28,7 @@ export const handler = async (event: SQSEvent, context: Context) => {
     })
   );
 
-  let buff = await streamToString(getObjResponse.Body);
+  let buff = await streamToString(getObjResponse.Body as Readable);
 
   const clamAvResponse: RequestResponse = await new Promise(
     (resolve, reject) => {
@@ -95,7 +95,7 @@ export const handler = async (event: SQSEvent, context: Context) => {
         new SendMessageCommand({
           QueueUrl: INFECTED_QUEUE_URL,
           MessageBody: JSON.stringify({
-            s3Data: JSON.parse(bodyObj),
+            s3Data: bodyObj,
             viruses,
           }),
         })

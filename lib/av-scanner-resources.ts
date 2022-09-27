@@ -30,7 +30,7 @@ export class AvScannerResources extends Construct {
      * Scanner agent resources
      */
     const vpc = new ec2.Vpc(this, `${id}-vpc`, {
-      maxAzs: 3
+      maxAzs: 2
     });
 
     const cluster = new ecs.Cluster(this, `${id}-cluster`, {
