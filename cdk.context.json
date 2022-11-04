@@ -1,0 +1,20 @@
+{
+  "dev": {
+    "incomingBucketArnList": null,
+    "defaultIncomingBucket": false,
+    "scanningAgentLambda": {
+      "memorySize": 128
+    }
+  },
+  "prod": {
+    "incomingBucketArnList": [
+      "arn:aws:s3:::somebucket-1",
+      "arn:aws:s3:::somebucket-2",
+      "arn:aws:s3:::somebucket-3"
+    ],
+    "defaultIncomingBucket": false,
+    "scanningAgentLambda": {
+      "memorySize": 128
+    }
+  }
+}

@@ -3,6 +3,7 @@ import {
   DeleteObjectCommand,
   GetObjectCommand,
   PutObjectCommand,
+  PutObjectCommandOutput,
   S3Client,
 } from "@aws-sdk/client-s3";
 import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
@@ -13,7 +14,7 @@ const s3 = new S3Client({});
 const sqs = new SQSClient({});
 
 export const handler = async (event: SQSEvent, context: Context) => {
-  const { CLAMAV_ELB_HOST, SCANNED_BUCKET_NAME, INFECTED_QUEUE_URL } =
+  const { CLAMAV_ELB_HOST, SCANNED_BUCKET_NAME, INFECTED_QUEUE_URL, CUSTOM_BUCKET_LIST_STR, DEFAULT_INCOMING_BUCKET } =
     process.env;
   const { body } = event.Records[0];
 
@@ -66,15 +67,34 @@ export const handler = async (event: SQSEvent, context: Context) => {
       /**
        * Move the file to scanned bucket
        */
-      const uploadOutput = await s3.send(
-        new PutObjectCommand({
-          Bucket: SCANNED_BUCKET_NAME,
-          Key: object.key,
-          Tagging: `ScanStatus=${ScanStatus.Clean}`,
-          Body: Buffer.from(buff, "base64"),
-          ContentType: getObjResponse.ContentType,
-        })
-      );
+      let uploadOutput: PutObjectCommandOutput | undefined = undefined;
+
+      if(CUSTOM_BUCKET_LIST_STR) {
+        if(DEFAULT_INCOMING_BUCKET) {
+
+        } else {
+          uploadOutput = await s3.send(
+            new PutObjectCommand({
+              Bucket: SCANNED_BUCKET_NAME,
+              Key: object.key,
+              Tagging: `ScanStatus=${ScanStatus.Clean}`,
+              Body: Buffer.from(buff, "base64"),
+              ContentType: getObjResponse.ContentType,
+            })
+          );
+        }
+      } else {
+        uploadOutput = await s3.send(
+          new PutObjectCommand({
+            Bucket: SCANNED_BUCKET_NAME,
+            Key: object.key,
+            Tagging: `ScanStatus=${ScanStatus.Clean}`,
+            Body: Buffer.from(buff, "base64"),
+            ContentType: getObjResponse.ContentType,
+          })
+        );
+      }
+      
 
       /**
        * Remove the file from incoming bucket
