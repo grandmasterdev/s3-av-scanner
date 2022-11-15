@@ -1,10 +1,18 @@
 # S3 Antivirus Scanner
 
-This project creates antivirus scanner for S3 bucket object. 
+This project demostrates and creates antivirus scanner for objects going into AWS S3 Buckets.
 
 ## The Design
 
-![conceptual-diagram](documentation/assets/2-bucket-av-scanner.png)
+1. Default configuration 
+    - This configuration uses 2 buckets created under the custodianship of the Scanner
+
+![default](documentation/assets/s3-antivirus-scanner.png)
+
+2. Custom bucket configuration
+    - This configuration is for custom buckets setup where the bucket(s) ownership is/are not under the Scanner
+
+![custom](documentation/assets/s3-antivirus-scanner-custom-bucket.png)
 
 ## Antivirus / Scanner
 

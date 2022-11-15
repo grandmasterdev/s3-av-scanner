@@ -20,10 +20,12 @@
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
     "typeRoots": [
-      "./node_modules/@types"
+      "./node_modules/@types",
+      "./src/types"
     ],
     "outDir": "dist",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "resolveJsonModule": true
   },
   "exclude": [
     "node_modules",

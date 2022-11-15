@@ -3,6 +3,7 @@ import {
   DeleteObjectCommand,
   GetObjectCommand,
   PutObjectCommand,
+  PutObjectCommandOutput,
   S3Client,
 } from "@aws-sdk/client-s3";
 import { SendMessageCommand, SQSClient } from "@aws-sdk/client-sqs";
@@ -13,8 +14,15 @@ const s3 = new S3Client({});
 const sqs = new SQSClient({});
 
 export const handler = async (event: SQSEvent, context: Context) => {
-  const { CLAMAV_ELB_HOST, SCANNED_BUCKET_NAME, INFECTED_QUEUE_URL } =
-    process.env;
+  const {
+    CLAMAV_ELB_HOST,
+    SCANNED_BUCKET_NAME,
+    INFECTED_QUEUE_URL,
+    CLEAN_QUEUE_URL,
+    CUSTOM_BUCKET_LIST_STR,
+    DEFAULT_INCOMING_BUCKET,
+    DEFAULT_INFECTED_BUCKET,
+  } = process.env;
   const { body } = event.Records[0];
 
   const bodyObj = JSON.parse(body);
@@ -27,6 +35,8 @@ export const handler = async (event: SQSEvent, context: Context) => {
       Key: object.key,
     })
   );
+
+  console.log("get object response", getObjResponse);
 
   let buff = await streamToString(getObjResponse.Body as Readable);
 
@@ -63,18 +73,58 @@ export const handler = async (event: SQSEvent, context: Context) => {
     const { isInfected, viruses } = clamAvResponseObj.scanResult;
 
     if (!isInfected) {
-      /**
-       * Move the file to scanned bucket
-       */
-      const uploadOutput = await s3.send(
-        new PutObjectCommand({
-          Bucket: SCANNED_BUCKET_NAME,
-          Key: object.key,
-          Tagging: `ScanStatus=${ScanStatus.Clean}`,
-          Body: Buffer.from(buff, "base64"),
-          ContentType: getObjResponse.ContentType,
-        })
-      );
+      let uploadOutput: PutObjectCommandOutput | undefined = undefined;
+
+      if (CUSTOM_BUCKET_LIST_STR !== "NONE") {
+        /**
+         * Send clean objects to custom buckets
+         */
+        if (DEFAULT_INCOMING_BUCKET === "true" && DEFAULT_INFECTED_BUCKET === "false") {
+          console.log('###CUSTOM BUCKET###')
+          const bucketNames = getBucketNameList(CUSTOM_BUCKET_LIST_STR);
+          const { Metadata } = getObjResponse;
+
+          const result = bucketNames.filter((bucketName) => {
+            bucketName === Metadata?.["destination-bucket"];
+          });
+
+          if (result && result.length > 0) {
+            uploadOutput = await s3.send(
+              new PutObjectCommand({
+                Bucket: result[0],
+                Key: object.key,
+                Tagging: `ScanStatus=${ScanStatus.Clean}`,
+                Body: Buffer.from(buff, "base64"),
+                ContentType: getObjResponse.ContentType,
+              })
+            );
+          }
+        } else if (!DEFAULT_INCOMING_BUCKET && !DEFAULT_INFECTED_BUCKET) {
+          /**
+           * Send clean objects to default clean/scanned bucket
+           */
+          uploadOutput = await s3.send(
+            new PutObjectCommand({
+              Bucket: SCANNED_BUCKET_NAME,
+              Key: object.key,
+              Tagging: `ScanStatus=${ScanStatus.Clean}`,
+              Body: Buffer.from(buff, "base64"),
+              ContentType: getObjResponse.ContentType,
+            })
+          );
+        }
+      } else {
+        console.log("###NO CUSTOM BUCKET###");
+        uploadOutput = await s3.send(
+          new PutObjectCommand({
+            Bucket: SCANNED_BUCKET_NAME,
+            Key: object.key,
+            Tagging: `ScanStatus=${ScanStatus.Infected}`,
+            Body: Buffer.from(buff, "base64"),
+            ContentType: getObjResponse.ContentType,
+          })
+        );
+      }
 
       /**
        * Remove the file from incoming bucket
@@ -87,7 +137,37 @@ export const handler = async (event: SQSEvent, context: Context) => {
           })
         );
       }
+
+      /**
+       * Send infected file info to queue
+       */
+       await sqs.send(
+        new SendMessageCommand({
+          QueueUrl: CLEAN_QUEUE_URL,
+          MessageBody: JSON.stringify({
+            s3Data: bodyObj,
+            viruses,
+          }),
+        })
+      );
     } else {
+      /**
+       * Move infected objects to default infected bucket
+       */
+      if (!DEFAULT_INCOMING_BUCKET && DEFAULT_INFECTED_BUCKET) {
+        let uploadOutput: PutObjectCommandOutput | undefined = undefined;
+
+        uploadOutput = await s3.send(
+          new PutObjectCommand({
+            Bucket: SCANNED_BUCKET_NAME,
+            Key: object.key,
+            Tagging: `ScanStatus=${ScanStatus.Clean}`,
+            Body: Buffer.from(buff, "base64"),
+            ContentType: getObjResponse.ContentType,
+          })
+        );
+      }
+
       /**
        * Send infected file info to queue
        */
@@ -117,6 +197,15 @@ function getFileExtension(filename: string) {
   const temp = filename.split(".");
 
   return temp[temp.length - 1];
+}
+
+/**
+ *
+ * @param bucketNames
+ * @returns List of custom bucket name
+ */
+function getBucketNameList(bucketNames: string) {
+  return bucketNames.split(" , ");
 }
 
 export type RequestResponse = {

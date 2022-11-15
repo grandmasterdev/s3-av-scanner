@@ -1,0 +1,27 @@
+{
+  "dev": {
+    "incomingBucketArnList": ["arn:aws:s3:::somebucket-1"],
+    "defaultIncomingBucket": false,
+    "defaultInfectedBucket": false,
+    "scanningAgentLambda": {
+      "memorySize": 128
+    }
+  },
+  "prod": {
+    "incomingBucketArnList": [
+      "arn:aws:s3:::somebucket-1",
+      "arn:aws:s3:::somebucket-2",
+      "arn:aws:s3:::somebucket-3"
+    ],
+    "defaultIncomingBucket": true,
+    "defaultInfectedBucket": false,
+    "scanningAgentLambda": {
+      "memorySize": 128
+    }
+  },
+  "availability-zones:account=060846019663:region=eu-west-1": [
+    "eu-west-1a",
+    "eu-west-1b",
+    "eu-west-1c"
+  ]
+}
