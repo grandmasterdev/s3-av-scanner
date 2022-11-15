@@ -91,7 +91,7 @@ export class BucketResources extends Construct {
     /**
      * Event log resource
      */
-    const cleanBucketEventLog = new logs.LogGroup(this, `${id}-event-log`, {
+    const incomingBucketEventLog = new logs.LogGroup(this, `${id}-event-log`, {
       logGroupName: `/aws/events/${this.incomingBucketName}`,
       retention: logs.RetentionDays.ONE_DAY,
     });
@@ -117,7 +117,7 @@ export class BucketResources extends Construct {
       },
       targets: [
         new event_targets.SqsQueue(this.queue),
-        new event_targets.CloudWatchLogGroup(cleanBucketEventLog),
+        new event_targets.CloudWatchLogGroup(incomingBucketEventLog),
       ],
     });
   }

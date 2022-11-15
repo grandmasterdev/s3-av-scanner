@@ -28,6 +28,7 @@ export interface NotificationResourcesProps {
 export type Configuration = {
   incomingBucketArnList: string[],
   defaultIncomingBucket: boolean,
+  defaultInfectedBucket: boolean,
   scanningAgentLambda: ScanningAgentLambda,
 }
 
