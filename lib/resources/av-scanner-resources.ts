@@ -104,9 +104,11 @@ export class AvScannerResources extends Construct {
         CLEAN_QUEUE_URL: avNotification.cleanQueue.queueUrl,
         CUSTOM_BUCKET_LIST_STR: this.configuration.incomingBucketArnList
           ? this.configuration.incomingBucketArnList.join(",")
-          : "",
+          : "NONE",
         DEFAULT_INCOMING_BUCKET:
-          this.configuration.defaultIncomingBucket.toString(),
+          this.configuration.defaultIncomingBucket === false ? "false" : "true",
+        DEFAULT_INFECTED_BUCKET:
+          this.configuration.defaultInfectedBucket === false ? "false" : "true",
       },
     });
 
@@ -163,7 +165,9 @@ export class AvScannerResources extends Construct {
       incomingBucket.grantReadWrite(this.scanBucketFunction);
       scannedBucket.grantReadWrite(this.scanBucketFunction);
       incomingQueue.grantConsumeMessages(this.scanBucketFunction);
+      incomingQueue.grantPurge(this.scanBucketFunction);
       avNotification.infectedQueue.grantSendMessages(this.scanBucketFunction);
+      avNotification.cleanQueue.grantSendMessages(this.scanBucketFunction);
     }
 
     /**

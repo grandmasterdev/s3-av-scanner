@@ -1,6 +1,6 @@
 # S3 Antivirus Scanner
 
-This project creates antivirus scanner for S3 bucket object. 
+This project demostrates and creates antivirus scanner for objects going into AWS S3 Buckets.
 
 ## The Design
 
