@@ -75,12 +75,11 @@ export const handler = async (event: SQSEvent, context: Context) => {
     if (!isInfected) {
       let uploadOutput: PutObjectCommandOutput | undefined = undefined;
 
-      if (CUSTOM_BUCKET_LIST_STR !== "NONE") {
+      if (CUSTOM_BUCKET_LIST_STR && CUSTOM_BUCKET_LIST_STR !== "NONE") {
         /**
          * Send clean objects to custom buckets
          */
         if (DEFAULT_INCOMING_BUCKET === "true" && DEFAULT_INFECTED_BUCKET === "false") {
-          console.log('###CUSTOM BUCKET###')
           const bucketNames = getBucketNameList(CUSTOM_BUCKET_LIST_STR);
           const { Metadata } = getObjResponse;
 
@@ -114,7 +113,6 @@ export const handler = async (event: SQSEvent, context: Context) => {
           );
         }
       } else {
-        console.log("###NO CUSTOM BUCKET###");
         uploadOutput = await s3.send(
           new PutObjectCommand({
             Bucket: SCANNED_BUCKET_NAME,

@@ -158,9 +158,6 @@ export class AvScannerResources extends Construct {
         "SCANNED_BUCKET_NAME",
         scannedBucket.bucketName
       );
-      this.scanBucketFunction.addEventSource(
-        new lambda_event_sources.SqsEventSource(incomingQueue)
-      );
 
       incomingBucket.grantReadWrite(this.scanBucketFunction);
       scannedBucket.grantReadWrite(this.scanBucketFunction);
@@ -169,6 +166,10 @@ export class AvScannerResources extends Construct {
       avNotification.infectedQueue.grantSendMessages(this.scanBucketFunction);
       avNotification.cleanQueue.grantSendMessages(this.scanBucketFunction);
     }
+
+    this.scanBucketFunction.addEventSource(
+      new lambda_event_sources.SqsEventSource(incomingQueue)
+    );
 
     /**
      * Outputs

@@ -65,7 +65,6 @@ export class S3AvScannerStack extends cdk.Stack {
           bucket
         );
       });
-      console.log('bucket list', bucketList[0].bucketArn);
 
       this.incomingBucketResources = new BucketResources(this, `${id}-dbr`, {
         accountId: this.accountId,
