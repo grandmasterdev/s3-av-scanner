@@ -125,24 +125,6 @@ export class AvScannerResources extends Construct {
         avNotification.infectedQueue.grantSendMessages(this.scanBucketFunction);
         avNotification.cleanQueue.grantSendMessages(this.scanBucketFunction);
 
-        /**
-         * S3 Bucket event resources
-         */
-        new events.Rule(this, `${id}-clean-bucket-event-rule-${index}`, {
-          ruleName: `${bucket.bucketName}-event-rule`,
-          enabled: true,
-          eventPattern: {
-            source: ["aws.s3"],
-            detailType: ["Object Created"],
-            detail: {
-              bucket: {
-                name: [bucket.bucketName],
-              },
-            },
-          },
-          targets: [new event_targets.SqsQueue(incomingQueue)],
-        });
-
         this.scanBucketFunction.addEnvironment(
           "CLEAN_QUEUE_URL",
           avNotification.cleanQueue.queueUrl
