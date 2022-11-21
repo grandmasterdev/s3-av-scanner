@@ -36,8 +36,6 @@ export const handler = async (event: SQSEvent, context: Context) => {
     })
   );
 
-  console.log("get object response", getObjResponse);
-
   let buff = await streamToString(getObjResponse.Body as Readable);
 
   const clamAvResponse: RequestResponse = await new Promise(
@@ -84,13 +82,13 @@ export const handler = async (event: SQSEvent, context: Context) => {
           const { Metadata } = getObjResponse;
 
           const result = bucketNames.filter((bucketName) => {
-            bucketName === Metadata?.["destination-bucket"];
+            return bucketName === Metadata?.["destination-bucket"];
           });
 
           if (result && result.length > 0) {
             uploadOutput = await s3.send(
               new PutObjectCommand({
-                Bucket: result[0],
+                Bucket: getBucketNameFromArn(result[0]),
                 Key: object.key,
                 Tagging: `ScanStatus=${ScanStatus.Clean}`,
                 Body: Buffer.from(buff, "base64"),
@@ -203,7 +201,22 @@ function getFileExtension(filename: string) {
  * @returns List of custom bucket name
  */
 function getBucketNameList(bucketNames: string) {
-  return bucketNames.split(" , ");
+  if(bucketNames !== "NONE") {
+    return bucketNames.split(" , ");
+  }
+  
+  return [];
+}
+
+/**
+ * 
+ * @param bucketArn 
+ * @returns Bucket name
+ */
+function getBucketNameFromArn(bucketArn: string) {
+  const temp = bucketArn.split(':');
+
+  return temp[temp.length - 1];
 }
 
 export type RequestResponse = {

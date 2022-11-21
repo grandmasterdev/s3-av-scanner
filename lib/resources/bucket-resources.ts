@@ -47,6 +47,12 @@ export class BucketResources extends Construct {
         encryption: s3.BucketEncryption.S3_MANAGED,
         blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
         eventBridgeEnabled: true,
+        lifecycleRules: [
+          {
+            enabled: true,
+            expiration: Duration.days(30)
+          }
+        ]
       });
     }
 

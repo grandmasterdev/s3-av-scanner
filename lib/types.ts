@@ -18,6 +18,7 @@ export interface BucketResourcesProps extends BaseResourceProps {
 export interface AvScannerResourcesProps {
   incomingQueue?: Queue;
   incomingBucket?: Bucket;
+  infectedBucket?: Bucket;
   scannedBucket?: Bucket;
   bucketList?: IBucket[];
 }

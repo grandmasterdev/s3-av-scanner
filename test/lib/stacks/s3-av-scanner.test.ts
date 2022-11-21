@@ -186,7 +186,7 @@ describe("create default incoming bucket and clean bucket", () => {
   });
 });
 
-describe.only("create custom incoming bucket and default infected bucket", () => {
+describe("create custom incoming bucket and default infected bucket", () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -200,6 +200,7 @@ describe.only("create custom incoming bucket and default infected bucket", () =>
               "arn:aws:s3:::somebucket-3",
             ],
             defaultIncomingBucket: false,
+            defaultInfectedBucket: true,
             scanningAgentLambda: {
               memorySize: 128,
             },
@@ -395,5 +396,167 @@ describe.only("create custom incoming bucket and default infected bucket", () =>
         },
       ],
     });
+  });
+});
+
+describe("create default incoming bucket, no default infected bucket and custom destination bucket", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+
+    (mockedAccb.getInstance as any).mockImplementation(() => {
+      return {
+        build: () => {
+          return {
+            incomingBucketArnList: [
+              "arn:aws:s3:::somebucket-1",
+              "arn:aws:s3:::somebucket-2",
+              "arn:aws:s3:::somebucket-3",
+            ],
+            defaultIncomingBucket: true,
+            defaultInfectedBucket: false,
+            scanningAgentLambda: {
+              memorySize: 128,
+            },
+          };
+        },
+      };
+    });
+  });
+
+  test("Process SQS Queue Created", () => {
+    const app = new cdk.App();
+    // WHEN
+    const stack = new S3AvScanner.S3AvScannerStack(app, "MyTestStack");
+    // THEN
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties("AWS::SQS::Queue", {
+      QueueName: "process-queue",
+    });
+    template.resourcePropertiesCountIs(
+      "AWS::SQS::Queue",
+      {
+        QueueName: "process-queue",
+      },
+      1
+    );
+  });
+
+  test("Infected SQS Queue Created", () => {
+    const app = new cdk.App();
+    // WHEN
+    const stack = new S3AvScanner.S3AvScannerStack(app, "MyTestStack");
+    // THEN
+    const template = Template.fromStack(stack);
+
+    template.hasResourceProperties("AWS::SQS::Queue", {
+      QueueName: "av-infected-queue",
+    });
+    template.resourcePropertiesCountIs(
+      "AWS::SQS::Queue",
+      {
+        QueueName: "av-infected-queue",
+      },
+      1
+    );
+  });
+
+  test("Incoming S3 Bucket Not Created", () => {
+    const app = new cdk.App();
+    // WHEN
+    const stack = new S3AvScanner.S3AvScannerStack(app, "MyTestStack");
+    // THEN
+    const template = Template.fromStack(stack);
+
+    template.resourcePropertiesCountIs(
+      "AWS::S3::Bucket",
+      {
+        BucketName: {
+          "Fn::Join": [
+            "",
+            [
+              "incoming-bucket-",
+              {
+                Ref: "AWS::AccountId",
+              },
+            ],
+          ],
+        },
+      },
+      1
+    );
+  });
+
+  test("Scanned S3 Bucket Not Created", () => {
+    const app = new cdk.App();
+    // WHEN
+    const stack = new S3AvScanner.S3AvScannerStack(app, "MyTestStack");
+    // THEN
+    const template = Template.fromStack(stack);
+
+    template.resourcePropertiesCountIs(
+      "AWS::S3::Bucket",
+      {
+        BucketName: {
+          "Fn::Join": [
+            "",
+            [
+              "scanned-bucket-",
+              {
+                Ref: "AWS::AccountId",
+              },
+            ],
+          ],
+        },
+      },
+      0
+    );
+  });
+
+  test("Infected S3 Bucket Not Created", () => {
+    const app = new cdk.App();
+    // WHEN
+    const stack = new S3AvScanner.S3AvScannerStack(app, "MyTestStack");
+    // THEN
+    const template = Template.fromStack(stack);
+
+    template.resourcePropertiesCountIs(
+      "AWS::S3::Bucket",
+      {
+        BucketName: {
+          "Fn::Join": [
+            "",
+            [
+              "infected-bucket-",
+              {
+                Ref: "AWS::AccountId",
+              },
+            ],
+          ],
+        },
+      },
+      0
+    );
+  });
+
+  test("Custom Buckets Event Not Created", () => {
+    const app = new cdk.App();
+    // WHEN
+    const stack = new S3AvScanner.S3AvScannerStack(app, "MyTestStack");
+    // THEN
+    const template = Template.fromStack(stack);
+
+    template.resourcePropertiesCountIs("AWS::Events::Rule", {
+      EventPattern: {
+        source: ["aws.s3"],
+        "detail-type": ["Object Created"],
+        detail: {
+          bucket: {
+            name: ["somebucket-1", "somebucket-2", "somebucket-3"],
+          },
+        },
+      },
+      Name: "s3-bucket-av-event-rule"
+    }, 0)
   });
 });
