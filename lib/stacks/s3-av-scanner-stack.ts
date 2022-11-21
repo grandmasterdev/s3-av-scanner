@@ -12,8 +12,11 @@ export class S3AvScannerStack extends cdk.Stack {
 
   private readonly bucketArns: string[];
 
+  private readonly defaultIncomingBucket: boolean;
+  private readonly defaultInfectedBucket: boolean;
+
   private readonly avScannerResourcesProps: AvScannerResourcesProps;
-  private readonly incomingBucketResources: BucketResources;
+  private readonly bucketResources: BucketResources;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
@@ -28,7 +31,8 @@ export class S3AvScannerStack extends cdk.Stack {
       this.configuration as Configuration
     ).incomingBucketArnList;
 
-    console.log("bucketArns", this.bucketArns);
+    this.defaultIncomingBucket = (this.configuration as Configuration).defaultIncomingBucket ?? false;
+    this.defaultInfectedBucket = (this.configuration as Configuration).defaultInfectedBucket ?? false;
 
     console.log("accountId: ", this.accountId);
     console.log("region: ", cdk.Stack.of(this).region);
@@ -38,7 +42,7 @@ export class S3AvScannerStack extends cdk.Stack {
      * bucket arns list is not present
      */
     if (!this.bucketArns) {
-      this.incomingBucketResources = new BucketResources(this, `${id}-cbr`, {
+      this.bucketResources = new BucketResources(this, `${id}-cbr`, {
         accountId: this.accountId,
         incomingBucket: true,
         scannedBucket: true,
@@ -46,9 +50,9 @@ export class S3AvScannerStack extends cdk.Stack {
       });
 
       this.avScannerResourcesProps = {
-        incomingQueue: this.incomingBucketResources.queue,
-        incomingBucket: this.incomingBucketResources.incomingBucket,
-        scannedBucket: this.incomingBucketResources.scannedBucket,
+        incomingQueue: this.bucketResources.queue,
+        incomingBucket: this.bucketResources.incomingBucket,
+        scannedBucket: this.bucketResources.scannedBucket,
       };
     } else {
       let bucketList: s3.IBucket[] = [];
@@ -65,19 +69,20 @@ export class S3AvScannerStack extends cdk.Stack {
           bucket
         );
       });
-      console.log('bucket list', bucketList[0].bucketArn);
 
-      this.incomingBucketResources = new BucketResources(this, `${id}-dbr`, {
+      this.bucketResources = new BucketResources(this, `${id}-dbr`, {
         accountId: this.accountId,
-        incomingBucket: false,
+        incomingBucket: this.defaultIncomingBucket,
         scannedBucket: false,
-        infectedBucket: true,
+        infectedBucket: this.defaultInfectedBucket,
         customIncomingBuckets: bucketList
       });
 
       this.avScannerResourcesProps = {
         bucketList,
-        incomingQueue: this.incomingBucketResources.queue
+        incomingBucket: this.bucketResources.incomingBucket,
+        infectedBucket: this.bucketResources.infectedBucket,
+        incomingQueue: this.bucketResources.queue
       };
     }
 

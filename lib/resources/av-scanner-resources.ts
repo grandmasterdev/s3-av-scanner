@@ -35,8 +35,13 @@ export class AvScannerResources extends Construct {
       .getInstance(this)
       .build<Configuration>("dev") as Configuration;
 
-    const { incomingBucket, incomingQueue, scannedBucket, bucketList } =
-      props || {};
+    const {
+      incomingBucket,
+      infectedBucket,
+      scannedBucket,
+      bucketList,
+      incomingQueue,
+    } = props || {};
 
     if (!incomingQueue) {
       throw new Error(`Missing incomingQueue`);
@@ -103,7 +108,7 @@ export class AvScannerResources extends Construct {
         INFECTED_QUEUE_URL: avNotification.infectedQueue.queueUrl,
         CLEAN_QUEUE_URL: avNotification.cleanQueue.queueUrl,
         CUSTOM_BUCKET_LIST_STR: this.configuration.incomingBucketArnList
-          ? this.configuration.incomingBucketArnList.join(",")
+          ? this.configuration.incomingBucketArnList.join(" , ")
           : "NONE",
         DEFAULT_INCOMING_BUCKET:
           this.configuration.defaultIncomingBucket === false ? "false" : "true",
@@ -121,32 +126,18 @@ export class AvScannerResources extends Construct {
          * S3 Bucket resources
          */
         bucket.grantReadWrite(this.scanBucketFunction);
+
+        if (this.configuration.defaultIncomingBucket && incomingBucket) {
+          incomingBucket.grantReadWrite(this.scanBucketFunction);
+        }
+
+        if (this.configuration.defaultInfectedBucket && infectedBucket) {
+          infectedBucket.grantReadWrite(this.scanBucketFunction);
+        }
+
         incomingQueue.grantConsumeMessages(this.scanBucketFunction);
         avNotification.infectedQueue.grantSendMessages(this.scanBucketFunction);
         avNotification.cleanQueue.grantSendMessages(this.scanBucketFunction);
-
-        /**
-         * S3 Bucket event resources
-         */
-        new events.Rule(this, `${id}-clean-bucket-event-rule-${index}`, {
-          ruleName: `${bucket.bucketName}-event-rule`,
-          enabled: true,
-          eventPattern: {
-            source: ["aws.s3"],
-            detailType: ["Object Created"],
-            detail: {
-              bucket: {
-                name: [bucket.bucketName],
-              },
-            },
-          },
-          targets: [new event_targets.SqsQueue(incomingQueue)],
-        });
-
-        this.scanBucketFunction.addEnvironment(
-          "CLEAN_QUEUE_URL",
-          avNotification.cleanQueue.queueUrl
-        );
       });
     } else if (incomingBucket && scannedBucket) {
       /**
@@ -158,17 +149,16 @@ export class AvScannerResources extends Construct {
         "SCANNED_BUCKET_NAME",
         scannedBucket.bucketName
       );
-      this.scanBucketFunction.addEventSource(
-        new lambda_event_sources.SqsEventSource(incomingQueue)
-      );
 
       incomingBucket.grantReadWrite(this.scanBucketFunction);
       scannedBucket.grantReadWrite(this.scanBucketFunction);
       incomingQueue.grantConsumeMessages(this.scanBucketFunction);
       incomingQueue.grantPurge(this.scanBucketFunction);
-      avNotification.infectedQueue.grantSendMessages(this.scanBucketFunction);
-      avNotification.cleanQueue.grantSendMessages(this.scanBucketFunction);
     }
+
+    this.scanBucketFunction.addEventSource(
+      new lambda_event_sources.SqsEventSource(incomingQueue)
+    );
 
     /**
      * Outputs

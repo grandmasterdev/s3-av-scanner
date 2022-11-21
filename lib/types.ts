@@ -1,4 +1,5 @@
 import { IKey } from "aws-cdk-lib/aws-kms";
+import { Function } from "aws-cdk-lib/aws-lambda";
 import { Bucket, IBucket } from "aws-cdk-lib/aws-s3";
 import { Queue } from "aws-cdk-lib/aws-sqs";
 
@@ -17,12 +18,13 @@ export interface BucketResourcesProps extends BaseResourceProps {
 export interface AvScannerResourcesProps {
   incomingQueue?: Queue;
   incomingBucket?: Bucket;
+  infectedBucket?: Bucket;
   scannedBucket?: Bucket;
   bucketList?: IBucket[];
 }
 
 export interface NotificationResourcesProps {
-  
+  lambda?: Function;
 }
 
 export type Configuration = {

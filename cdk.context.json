@@ -1,7 +1,9 @@
 {
   "dev": {
-    "incomingBucketArnList": ["arn:aws:s3:::somebucket-1"],
-    "defaultIncomingBucket": false,
+    "incomingBucketArnList": [
+      "arn:aws:s3:::somebucket-1"
+    ],
+    "defaultIncomingBucket": true,
     "defaultInfectedBucket": false,
     "scanningAgentLambda": {
       "memorySize": 128
