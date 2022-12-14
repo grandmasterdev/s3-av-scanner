@@ -1,12 +1,19 @@
 {
   "dev": {
     "incomingBucketArnList": [
-      "arn:aws:s3:::somebucket-1"
+      "arn:aws:s3:::somebucket-1",
+      "arn:aws:s3:::somebucket-2"
     ],
     "defaultIncomingBucket": true,
     "defaultInfectedBucket": false,
     "scanningAgentLambda": {
       "memorySize": 128
+    },
+    "scanningAgentAv": {
+      "enableWaf": true,
+      "incomingBucketLifeCycle": 1,
+      "infectedBucketLifeCycle": 1,
+      "scannedBucketLifeCycle": 1
     }
   },
   "prod": {
@@ -19,6 +26,12 @@
     "defaultInfectedBucket": false,
     "scanningAgentLambda": {
       "memorySize": 128
+    },
+    "scanningAgentAv": {
+      "enableWaf": true,
+      "incomingBucketLifeCycle": 1,
+      "infectedBucketLifeCycle": 1,
+      "scannedBucketLifeCycle": 1
     }
   }
 }

@@ -9,6 +9,8 @@ declare global {
         CUSTOM_BUCKET_LIST_STR: string;
         DEFAULT_INCOMING_BUCKET: string;
         DEFAULT_INFECTED_BUCKET: string;
+        DEFAULT_INCOMING_BUCKET_NAME: string;
+        DEFAULT_INFECTED_BUCKET_NAME: string;
     }
   }
 }

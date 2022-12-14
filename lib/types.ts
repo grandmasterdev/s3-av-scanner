@@ -2,6 +2,7 @@ import { IKey } from "aws-cdk-lib/aws-kms";
 import { Function } from "aws-cdk-lib/aws-lambda";
 import { Bucket, IBucket } from "aws-cdk-lib/aws-s3";
 import { Queue } from "aws-cdk-lib/aws-sqs";
+import { CfnWebACL } from "aws-cdk-lib/aws-wafv2";
 
 export interface BaseResourceProps {
   accountId: string;
@@ -21,6 +22,7 @@ export interface AvScannerResourcesProps {
   infectedBucket?: Bucket;
   scannedBucket?: Bucket;
   bucketList?: IBucket[];
+  waf?: CfnWebACL;
 }
 
 export interface NotificationResourcesProps {
@@ -28,12 +30,20 @@ export interface NotificationResourcesProps {
 }
 
 export type Configuration = {
-  incomingBucketArnList: string[],
-  defaultIncomingBucket: boolean,
-  defaultInfectedBucket: boolean,
-  scanningAgentLambda: ScanningAgentLambda,
-}
+  incomingBucketArnList: string[];
+  defaultIncomingBucket: boolean;
+  defaultInfectedBucket: boolean;
+  scanningAgentLambda: ScanningAgentLambda;
+  scanningAgentAv: ScanningAgentAv;
+};
 
 export type ScanningAgentLambda = {
-  memorySize: number
-}
+  memorySize: number;
+};
+
+export type ScanningAgentAv = {
+  enableWaf: boolean;
+  incomingBucketLifeCycle: number;
+  infectedBucketLifeCycle: number;
+  scannedBucketLifeCycle: number;
+};

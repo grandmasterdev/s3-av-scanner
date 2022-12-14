@@ -7,9 +7,13 @@ import {
   aws_logs as logs,
   Duration,
 } from "aws-cdk-lib";
-import { BucketResourcesProps } from "./../types";
+import { BucketResourcesProps, Configuration } from "./../types";
+import { HttpMethods } from "aws-cdk-lib/aws-s3";
+import accb from 'aws-cdk-config-builder';
 
 export class BucketResources extends Construct {
+  private readonly configuration: Configuration;
+
   private accountId: string = "";
   private incomingBucketName: string = "";
   private scannedBucketName: string = "";
@@ -33,6 +37,12 @@ export class BucketResources extends Construct {
       customIncomingBuckets,
     } = props;
 
+    const environment = this.node.tryGetContext("environment") ?? "dev";
+
+    this.configuration = accb
+      .getInstance(this)
+      .build<Configuration>(environment) as Configuration;
+
     this.accountId = accountId;
     this.incomingBucketName = "incoming-bucket-" + this.accountId;
     this.scannedBucketName = "scanned-bucket-" + this.accountId;
@@ -50,9 +60,21 @@ export class BucketResources extends Construct {
         lifecycleRules: [
           {
             enabled: true,
-            expiration: Duration.days(30)
-          }
-        ]
+            expiration: Duration.days(this.configuration.scanningAgentAv.incomingBucketLifeCycle ?? 1),
+          },
+        ],
+        cors: [
+          {
+            allowedHeaders: ["*"],
+            allowedMethods: [
+              HttpMethods.GET,
+              HttpMethods.POST,
+              HttpMethods.PUT,
+              HttpMethods.DELETE,
+            ],
+            allowedOrigins: ['*']
+          },
+        ],
       });
     }
 
@@ -65,7 +87,7 @@ export class BucketResources extends Construct {
         lifecycleRules: [
           {
             enabled: true,
-            expiration: Duration.days(7),
+            expiration: Duration.days(this.configuration.scanningAgentAv.scannedBucketLifeCycle ?? 1),
           },
         ],
       });
@@ -80,7 +102,7 @@ export class BucketResources extends Construct {
         lifecycleRules: [
           {
             enabled: true,
-            expiration: Duration.days(7),
+            expiration: Duration.days(this.configuration.scanningAgentAv.infectedBucketLifeCycle ?? 1),
           },
         ],
       });
@@ -107,7 +129,9 @@ export class BucketResources extends Construct {
      */
     const eventBucketNamePatternList: string[] = incomingBucket
       ? [this.incomingBucketName]
-      : customIncomingBuckets ? this.getListOfCustomBucketNames(customIncomingBuckets) : [];
+      : customIncomingBuckets
+      ? this.getListOfCustomBucketNames(customIncomingBuckets)
+      : [];
 
     new events.Rule(this, `${id}-s3-bucket-av-event-rule`, {
       ruleName: `s3-bucket-av-event-rule`,

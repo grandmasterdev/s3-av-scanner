@@ -37,6 +37,9 @@ describe("create default incoming bucket and clean bucket", () => {
             scanningAgentLambda: {
               memorySize: 129,
             },
+            scanningAgentAv: {
+              enableWaf: false
+            }
           };
         },
       };
@@ -204,6 +207,9 @@ describe("create custom incoming bucket and default infected bucket", () => {
             scanningAgentLambda: {
               memorySize: 128,
             },
+            scanningAgentAv: {
+              enableWaf: false
+            }
           };
         },
       };
@@ -417,6 +423,9 @@ describe("create default incoming bucket, no default infected bucket and custom 
             scanningAgentLambda: {
               memorySize: 128,
             },
+            scanningAgentAv: {
+              enableWaf: false
+            }
           };
         },
       };

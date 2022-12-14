@@ -6,14 +6,13 @@ import {
   aws_ecs_patterns as ecs_patterns,
   aws_lambda as lambda,
   aws_lambda_event_sources as lambda_event_sources,
-  aws_events as events,
-  aws_events_targets as event_targets,
   Duration,
 } from "aws-cdk-lib";
 import { AvScannerResourcesProps, Configuration } from "../types";
 import { RetentionDays } from "aws-cdk-lib/aws-logs";
 import accb from "aws-cdk-config-builder";
 import { NoficationResources } from "./notification-resources";
+import { CfnWebACLAssociation } from "aws-cdk-lib/aws-wafv2";
 
 export class AvScannerResources extends Construct {
   private readonly configuration: Configuration;
@@ -21,9 +20,7 @@ export class AvScannerResources extends Construct {
   private readonly containerImage: string = "gamemasterdev/clamav:latest";
   private readonly containerName: string = "clamav-container";
   private readonly containerServiceName: string = "clamav-service";
-
   private readonly clusterName: string = "clamav-cluster";
-
   private readonly loadBalancerName: string = "clamav-load-balancer";
 
   public scanBucketFunction: lambda.Function;
@@ -31,9 +28,13 @@ export class AvScannerResources extends Construct {
   constructor(scope: Construct, id: string, props: AvScannerResourcesProps) {
     super(scope, id);
 
+    const environment = this.node.tryGetContext("environment") ?? "dev";
+
+    console.log("environment", environment);
+
     this.configuration = accb
       .getInstance(this)
-      .build<Configuration>("dev") as Configuration;
+      .build<Configuration>(environment) as Configuration;
 
     const {
       incomingBucket,
@@ -41,6 +42,7 @@ export class AvScannerResources extends Construct {
       scannedBucket,
       bucketList,
       incomingQueue,
+      waf,
     } = props || {};
 
     if (!incomingQueue) {
@@ -88,6 +90,16 @@ export class AvScannerResources extends Construct {
       );
 
     /**
+     * Add WAF association to the ALB
+     */
+    if (this.configuration.scanningAgentAv.enableWaf) {
+      new CfnWebACLAssociation(this, "av-waf-ass", {
+        webAclArn: waf?.attrArn as string,
+        resourceArn: clamavEcsPattern.loadBalancer.loadBalancerArn,
+      });
+    }
+
+    /**
      * Notification resources
      */
     const avNotification = new NoficationResources(this, `avn`, {});
@@ -99,6 +111,7 @@ export class AvScannerResources extends Construct {
       functionName: "scan-bucket",
       handler: "index.handler",
       runtime: lambda.Runtime.NODEJS_16_X,
+      timeout: Duration.minutes(3),
       memorySize: this.configuration.scanningAgentLambda.memorySize ?? 128,
       code: lambda.Code.fromAsset("dist/lambda"),
       logRetention: RetentionDays.ONE_DAY,
@@ -128,10 +141,19 @@ export class AvScannerResources extends Construct {
         bucket.grantReadWrite(this.scanBucketFunction);
 
         if (this.configuration.defaultIncomingBucket && incomingBucket) {
+          this.scanBucketFunction.addEnvironment(
+            "DEFAULT_INCOMING_BUCKET_NAME",
+            incomingBucket?.bucketName
+          );
           incomingBucket.grantReadWrite(this.scanBucketFunction);
         }
 
         if (this.configuration.defaultInfectedBucket && infectedBucket) {
+          this.scanBucketFunction.addEnvironment(
+            "DEFAULT_INFECTED_BUCKET_NAME",
+            infectedBucket?.bucketName
+          );
+
           infectedBucket.grantReadWrite(this.scanBucketFunction);
         }
 
@@ -148,6 +170,10 @@ export class AvScannerResources extends Construct {
       this.scanBucketFunction.addEnvironment(
         "SCANNED_BUCKET_NAME",
         scannedBucket.bucketName
+      );
+      this.scanBucketFunction.addEnvironment(
+        "DEFAULT_INCOMING_BUCKET_NAME",
+        incomingBucket.bucketName
       );
 
       incomingBucket.grantReadWrite(this.scanBucketFunction);

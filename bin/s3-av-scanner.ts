@@ -16,6 +16,7 @@ new S3AvScannerStack(app, "S3AvScannerStack", {
     account: process.env.CDK_DEFAULT_ACCOUNT,
     region: process.env.CDK_DEFAULT_REGION,
   },
+  stackName: 's3-av-scanner'
 
   /* Uncomment the next line if you know exactly what Account and Region you
    * want to deploy the stack to. */

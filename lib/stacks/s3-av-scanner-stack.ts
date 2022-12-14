@@ -4,6 +4,7 @@ import { Construct } from "constructs";
 import { BucketResources } from "../resources/bucket-resources";
 import { AvScannerResources } from "../resources/av-scanner-resources";
 import { AvScannerResourcesProps, Configuration } from "../types";
+import { WafResources } from './../resources/waf-resources'
 import accb from "aws-cdk-config-builder";
 
 export class S3AvScannerStack extends cdk.Stack {
@@ -17,13 +18,18 @@ export class S3AvScannerStack extends cdk.Stack {
 
   private readonly avScannerResourcesProps: AvScannerResourcesProps;
   private readonly bucketResources: BucketResources;
+  private readonly wafResources: WafResources;
 
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
+
+    const environment = this.node.tryGetContext('environment') ?? 'dev';
+
+    console.log('environment', environment);
     
     this.configuration = accb
       .getInstance(this)
-      .build<Configuration>("dev");
+      .build<Configuration>(environment);
 
     console.log("configuration", this.configuration);
 
@@ -78,11 +84,14 @@ export class S3AvScannerStack extends cdk.Stack {
         customIncomingBuckets: bucketList
       });
 
+      this.wafResources = new WafResources(this, '${id}-waf', {});
+
       this.avScannerResourcesProps = {
         bucketList,
         incomingBucket: this.bucketResources.incomingBucket,
         infectedBucket: this.bucketResources.infectedBucket,
-        incomingQueue: this.bucketResources.queue
+        incomingQueue: this.bucketResources.queue,
+        waf: this.wafResources.webACL
       };
     }
 
