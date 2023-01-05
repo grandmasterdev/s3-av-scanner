@@ -14,13 +14,13 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '16'
 
-      - name: build
-        run: |
-          npm ci
-          npm run build
-          npm run test
+      - name: build and test
+        uses: actions/setup-node@v3
+          with:
+            node-version: '16'
+          run: |
+            npm ci
+            npm run build
+            npm run test
 
