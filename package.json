@@ -10,7 +10,7 @@
     "build-agent": "esbuild ./src/lambda/index.ts --external:aws-sdk --platform=node --bundle --outfile=dist/lambda/index.js",
     "build": "npm run build-api & npm run build-agent",
     "watch": "tsc -w",
-    "test": "jest",
+    "test": "jest --collectCoverage",
     "cdk": "cdk"
   },
   "devDependencies": {

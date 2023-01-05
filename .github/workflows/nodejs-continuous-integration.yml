@@ -1,0 +1,23 @@
+# This workflow will run CI for nodejs related application/service
+
+name: NodeJs CI
+
+on: 
+  push:
+    branches: [ master ]
+
+jobs:
+  automate:
+    runs-on: ubuntu-latest
+    env:
+      working-dir: '.'
+
+  steps:
+    - uses: actions/checkout@v2
+
+    - name: build
+      run: |
+      npm ci
+      npm run build
+      npm run test
+
