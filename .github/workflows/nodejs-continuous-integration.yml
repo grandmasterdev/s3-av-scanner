@@ -12,13 +12,13 @@ jobs:
     env:
       working-dir: '.'
 
-  steps:
-    - name: checkout
-      uses: actions/checkout@v2
+    steps:
+      - name: checkout
+        uses: actions/checkout@v2
 
-    - name: build
-      run: |
-        npm ci
-        npm run build
-        npm run test
+      - name: build
+        run: |
+          npm ci
+          npm run build
+          npm run test
 
