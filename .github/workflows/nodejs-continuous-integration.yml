@@ -7,13 +7,14 @@ on:
     branches: [ master ]
 
 jobs:
-  automate:
+  ci:
     runs-on: ubuntu-latest
     env:
       working-dir: '.'
 
   steps:
-    - uses: actions/checkout@v2
+    - name: checkout
+      uses: actions/checkout@v2
 
     - name: build
       run: |
