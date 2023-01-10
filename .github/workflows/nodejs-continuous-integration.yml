@@ -18,11 +18,11 @@ jobs:
         with:
           node-version: '16'
 
-      - name: build and test
-        run: |
-          node -v
-          npm -v
-          npm ci
-          npm run build
-          npm run test
+      - uses: grandmasterdev/github-action-ci-nodejs-build-test
+        with:
+          working-dir: ${{github.workspace}}
+          github-user: 'action-committer'
+          github-email: 'action-committer'
+          github-token: ${{github.token}}
+          github-remote: 'origin'
 
