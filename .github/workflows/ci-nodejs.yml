@@ -21,8 +21,6 @@ jobs:
       - uses: grandmasterdev/github-action-ci-nodejs-build-test@v1.0.0
         with:
           working-dir: ${{github.workspace}}
-        env:
-          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
       - uses: grandmasterdev/github-action-ci-nodejs-package@v1.0.0-alpha.5
         with:
@@ -31,6 +29,8 @@ jobs:
           assets: 'dist,bin,package.json,package-lock.json,cdk.context.json,cdk.json,lib'
 
       - uses: grandmasterdev/github-action-ci-revision-artifact@v1.0.0-beta.7
+        env:
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         with:
           working-dir: ${{github.workspace}}
           version-type: datehash
