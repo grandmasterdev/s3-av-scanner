@@ -33,8 +33,8 @@ jobs:
           working-dir: ${{github.workspace}}
           version-type: datehash
           artifact-repo: 'example-repo-local'
-          artifact-host: ${{secret.ARTIFACT_HOST}}
+          artifact-host: ${{secrets.ARTIFACT_HOST}}
           artifact-path: 'example-repo-local/s3-av-scanner'
-          artifact-token: ${{secret.ARTIFACT_TOKEN}}
+          artifact-token: ${{secretsARTIFACT_TOKEN}}
           packager-type: 'tar'
 
