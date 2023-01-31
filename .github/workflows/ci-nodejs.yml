@@ -35,6 +35,6 @@ jobs:
           artifact-repo: 'example-repo-local'
           artifact-host: ${{secrets.ARTIFACT_HOST}}
           artifact-path: 'example-repo-local/s3-av-scanner'
-          artifact-token: ${{secretsARTIFACT_TOKEN}}
+          artifact-token: ${{secrets.ARTIFACT_TOKEN}}
           packager-type: 'tar'
 
