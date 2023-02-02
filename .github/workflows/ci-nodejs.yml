@@ -28,7 +28,7 @@ jobs:
           packager: tar
           assets: 'dist,bin,package.json,package-lock.json,cdk.context.json,cdk.json,lib'
 
-      - uses: grandmasterdev/github-action-ci-revision-artifact@v1.0.0-beta.11
+      - uses: grandmasterdev/github-action-ci-revision-artifact@v1.0.0-beta.12
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         with:
@@ -36,7 +36,7 @@ jobs:
           version-type: datehash
           artifact-repo: 'artifactory'
           artifact-host: ${{secrets.ARTIFACT_HOST}}
-          artifact-path: 'example-repo-local/s3-av-scanner'
+          artifact-path: example-repo-local/${{github.repository}}
           artifact-token: ${{secrets.ARTIFACT_TOKEN}}
           packager-type: 'tar'
 
