@@ -28,7 +28,7 @@ jobs:
           packager: tar
           assets: 'dist,bin,package.json,package-lock.json,cdk.context.json,cdk.json,lib'
 
-      - uses: grandmasterdev/github-action-ci-revision-artifact@v1.0.0-beta.18
+      - uses: grandmasterdev/github-action-ci-revision-artifact@v1.0.0-beta.19
         env:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
         with:
