@@ -22,7 +22,7 @@ jobs:
         with:
           working-dir: ${{github.workspace}}
 
-      - uses: grandmasterdev/github-action-ci-nodejs-package@v1.0.0-alpha.5
+      - uses: grandmasterdev/github-action-ci-nodejs-package@v1.0.0
         with:
           working-dir: ${{github.workspace}}
           packager: tar
